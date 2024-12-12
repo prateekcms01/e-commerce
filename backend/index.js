@@ -53,13 +53,13 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/product-add", async (req, res) => {
+app.post("/product-add", verifytoken, async (req, res) => {
   let data = new Product(req.body);
   let result = await data.save();
   res.send(result);
 });
 
-app.get("/product", async (req, res) => {
+app.get("/product", verifytoken, async (req, res) => {
   let data = await Product.find();
   if (data.length > 0) {
     res.send(data);
@@ -68,12 +68,12 @@ app.get("/product", async (req, res) => {
   }
 });
 
-app.delete("/product/:id", async (req, res) => {
+app.delete("/product/:id", verifytoken, async (req, res) => {
   let data = await Product.deleteOne({ _id: req.params.id });
   res.send(data);
 });
 
-app.get("/product/:id", async (req, res) => {
+app.get("/product/:id", verifytoken, async (req, res) => {
   const result = await Product.findOne({ _id: req.params.id });
 
   if (result) {
@@ -83,7 +83,7 @@ app.get("/product/:id", async (req, res) => {
   }
 });
 
-app.put("/product/:id", async (req, res) => {
+app.put("/product/:id", verifytoken, async (req, res) => {
   let result = await Product.updateOne(
     { _id: req.params.id },
     { $set: req.body }
@@ -91,7 +91,7 @@ app.put("/product/:id", async (req, res) => {
   res.send(result);
 });
 
-app.get("/search/:key", async (req, res) => {
+app.get("/search/:key", verifytoken, async (req, res) => {
   let result = await Product.find({
     $or: [
       { name: { $regex: req.params.key } },
@@ -102,4 +102,23 @@ app.get("/search/:key", async (req, res) => {
   res.send(result);
 });
 
-app.listen(8000);
+function verifytoken(req, res, next) {
+  let token = req.headers["authorization"];
+  if (token) {
+    token = token.split(" ")[1];
+    jwt.verify(token, jwtKey, (err, valid) => {
+      if (err) {
+        res.status(401).send({ result: "please Provide a valid token" });
+      } else {
+        next();
+      }
+    });
+  } else {
+    res.status(403).send({ result: "Please Provide a token" });
+  }
+  // console.log("Middleware", token);
+}
+
+app.listen(8000, () => {
+  console.log("Server is running on port 8000");
+});

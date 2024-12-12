@@ -16,7 +16,11 @@ const UpdateProduct = () => {
   //    Prefilling the fields
   const getProduct = async () => {
     console.log(params.id);
-    let data = await fetch(`http://localhost:8000/product/${params.id}`);
+    let data = await fetch(`http://localhost:8000/product/${params.id}`, {
+      headers: {
+        authorization: `bearer ${JSON.parse(localStorage.getItem("token"))}`,
+      },
+    });
     let result = await data.json();
 
     setName(result.name);
@@ -31,6 +35,7 @@ const UpdateProduct = () => {
       body: JSON.stringify({ name, price, category, company }),
       headers: {
         "Content-Type": "application/json",
+        authorization: `bearer ${JSON.parse(localStorage.getItem("token"))}`,
       },
     });
     let result = await data.json();
